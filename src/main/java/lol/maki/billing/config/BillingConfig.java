@@ -13,9 +13,12 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import javax.sql.DataSource;
@@ -29,10 +32,12 @@ public class BillingConfig {
 
     public BillingConfig(JobBuilderFactory jobBuilderFactory,
                          StepBuilderFactory stepBuilderFactory,
-                         @Value("${usage.file.name:classpath:usageinfo.csv}") Resource usageResource) {
+                         Environment environment) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
-        this.usageResource = usageResource;
+        this.usageResource = Binder.get(environment)
+                .bind("usage.file.name", Bindable.of(Resource.class))
+                .orElseGet(() -> new ClassPathResource("usageinfo.csv"));
     }
 
     @Bean
