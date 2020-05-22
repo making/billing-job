@@ -1,6 +1,5 @@
 package lol.maki.billing.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lol.maki.billing.model.Bill;
 import lol.maki.billing.model.Usage;
 import org.springframework.batch.core.Job;
@@ -13,8 +12,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
-import org.springframework.batch.item.json.JacksonJsonObjectReader;
-import org.springframework.batch.item.json.builder.JsonItemReaderBuilder;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +29,7 @@ public class BillingConfig {
 
     public BillingConfig(JobBuilderFactory jobBuilderFactory,
                          StepBuilderFactory stepBuilderFactory,
-                         @Value("${usage.file.name:classpath:usageinfo.json}") Resource usageResource) {
+                         @Value("${usage.file.name:classpath:usageinfo.csv}") Resource usageResource) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
         this.usageResource = usageResource;
@@ -52,13 +50,18 @@ public class BillingConfig {
     }
 
     @Bean
-    public ItemReader<Usage> jsonItemReader() {
-        final JacksonJsonObjectReader<Usage> jsonObjectReader = new JacksonJsonObjectReader<>(Usage.class);
-        jsonObjectReader.setMapper(new ObjectMapper());
-        return new JsonItemReaderBuilder<Usage>()
-                .jsonObjectReader(jsonObjectReader)
+    public ItemReader<Usage> usageItemReader() {
+        return new FlatFileItemReaderBuilder<Usage>()
+                .name("UsageItemReader")
                 .resource(this.usageResource)
-                .name("UsageJsonItemReader")
+                .delimited()
+                .names("id", "firstName", "lastName", "minutes", "dataUsage")
+                .fieldSetMapper(fs -> new Usage(fs.readLong("id"),
+                        fs.readString("firstName"),
+                        fs.readString("lastName"),
+                        fs.readLong("minutes"),
+                        fs.readLong("dataUsage")))
+                .linesToSkip(1)
                 .build();
     }
 

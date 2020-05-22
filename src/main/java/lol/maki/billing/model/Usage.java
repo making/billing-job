@@ -1,8 +1,5 @@
 package lol.maki.billing.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class Usage {
     private final Long id;
     private final String firstName;
@@ -10,12 +7,7 @@ public class Usage {
     private final Long minutes;
     private final Long dataUsage;
 
-    @JsonCreator
-    public Usage(@JsonProperty("id") Long id,
-                 @JsonProperty("firstName") String firstName,
-                 @JsonProperty("lastName") String lastName,
-                 @JsonProperty("minutes") Long minutes,
-                 @JsonProperty("dataUsage") Long dataUsage) {
+    public Usage(Long id, String firstName, String lastName, Long minutes, Long dataUsage) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
