@@ -43,7 +43,7 @@ public class BillingConfig {
     @Bean
     public Job billingJob(ItemReader<Usage> itemReader, ItemProcessor<Usage, Bill> itemProcessor, ItemWriter<Bill> itemWriter) {
         final Step step = this.stepBuilderFactory.get("BilliProcessing")
-                .<Usage, Bill>chunk(1)
+                .<Usage, Bill>chunk(3)
                 .reader(itemReader)
                 .processor(itemProcessor)
                 .writer(itemWriter)
