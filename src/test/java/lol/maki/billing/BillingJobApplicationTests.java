@@ -31,11 +31,11 @@ class BillingJobApplicationTests {
                         rs.getBigDecimal("bill_amount")));
         assertThat(billStatements.size()).isEqualTo(5);
         Bill billStatement = billStatements.get(0);
-        assertThat(billStatement.getBillAmount()).isEqualTo(new BigDecimal("6.00"));
-        assertThat(billStatement.getFirstName()).isEqualTo("jane");
-        assertThat(billStatement.getLastName()).isEqualTo("doe");
-        assertThat(billStatement.getId()).isEqualTo(1);
-        assertThat(billStatement.getMinutes()).isEqualTo(500);
-        assertThat(billStatement.getDataUsage()).isEqualTo(1000);
+        assertThat(billStatement.billAmount()).isEqualTo(new BigDecimal("6.00"));
+        assertThat(billStatement.firstName()).isEqualTo("jane");
+        assertThat(billStatement.lastName()).isEqualTo("doe");
+        assertThat(billStatement.id()).isEqualTo(1);
+        assertThat(billStatement.minutes()).isEqualTo(500);
+        assertThat(billStatement.dataUsage()).isEqualTo(1000);
     }
 }
