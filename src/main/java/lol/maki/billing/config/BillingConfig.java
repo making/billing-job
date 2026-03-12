@@ -28,53 +28,51 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class BillingConfig {
 
-    @Bean
-    public ItemProcessor<Usage, Bill> billItemProcessor() {
-        return new ItemProcessor<Usage, Bill>() {
-            @Override
-            public Bill process(Usage usage) throws Exception {
-                return Bill.fromUsage(usage);
-            }
-        };
-    }
+	@Bean
+	public ItemProcessor<Usage, Bill> billItemProcessor() {
+		return new ItemProcessor<Usage, Bill>() {
+			@Override
+			public Bill process(Usage usage) throws Exception {
+				return Bill.fromUsage(usage);
+			}
+		};
+	}
 
-    @Bean
-    public ItemWriter<Bill> jdbcBillWriter(DataSource dataSource) {
-        return new JdbcBatchItemWriterBuilder<Bill>()
-                .beanMapped()
-                .dataSource(dataSource)
-                .sql("INSERT INTO BILL_STATEMENTS (id, first_name, last_name, minutes, data_usage,bill_amount) VALUES (:id, :firstName, :lastName, :minutes, :dataUsage, :billAmount)")
-                .build();
-    }
+	@Bean
+	public ItemWriter<Bill> jdbcBillWriter(DataSource dataSource) {
+		return new JdbcBatchItemWriterBuilder<Bill>().beanMapped()
+			.dataSource(dataSource)
+			.sql("INSERT INTO BILL_STATEMENTS (id, first_name, last_name, minutes, data_usage,bill_amount) VALUES (:id, :firstName, :lastName, :minutes, :dataUsage, :billAmount)")
+			.build();
+	}
 
-    @Bean
-    public Step billiProcessingStep(ItemReader<Usage> itemReader, ItemProcessor<Usage, Bill> itemProcessor, ItemWriter<Bill> itemWriter, JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("BilliProcessing", jobRepository)
-                .<Usage, Bill>chunk(3, transactionManager)
-                .reader(itemReader)
-                .processor(itemProcessor)
-                .writer(itemWriter)
-                .build();
-    }
+	@Bean
+	public Step billiProcessingStep(ItemReader<Usage> itemReader, ItemProcessor<Usage, Bill> itemProcessor,
+			ItemWriter<Bill> itemWriter, JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		return new StepBuilder("BilliProcessing", jobRepository).<Usage, Bill>chunk(3, transactionManager)
+			.reader(itemReader)
+			.processor(itemProcessor)
+			.writer(itemWriter)
+			.build();
+	}
 
-    @Bean
-    public Job billingJob(Step billiProcessingStep, JobRepository jobRepository) {
-        return new JobBuilder("BillingJob", jobRepository)
-                .incrementer(new RunIdIncrementer())
-                .start(billiProcessingStep)
-                .build();
-    }
+	@Bean
+	public Job billingJob(Step billiProcessingStep, JobRepository jobRepository) {
+		return new JobBuilder("BillingJob", jobRepository).incrementer(new RunIdIncrementer())
+			.start(billiProcessingStep)
+			.build();
+	}
 
-    @Bean
-    public ItemReader<Usage> usageItemReader(@Value("${usage.file.name:classpath:usageinfo.csv}") Resource usageResource) {
-        return new FlatFileItemReaderBuilder<Usage>()
-                .name("UsageItemReader")
-                .resource(usageResource)
-                .delimited()
-                .names("id", "firstName", "lastName", "minutes", "dataUsage")
-                .fieldSetMapper(new RecordFieldSetMapper<>(Usage.class))
-                .linesToSkip(1)
-                .build();
-    }
+	@Bean
+	public ItemReader<Usage> usageItemReader(
+			@Value("${usage.file.name:classpath:usageinfo.csv}") Resource usageResource) {
+		return new FlatFileItemReaderBuilder<Usage>().name("UsageItemReader")
+			.resource(usageResource)
+			.delimited()
+			.names("id", "firstName", "lastName", "minutes", "dataUsage")
+			.fieldSetMapper(new RecordFieldSetMapper<>(Usage.class))
+			.linesToSkip(1)
+			.build();
+	}
 
 }
