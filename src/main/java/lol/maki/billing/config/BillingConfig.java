@@ -27,6 +27,18 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class BillingConfig {
 
 	@Bean
+	public ItemReader<Usage> usageItemReader(
+			@Value("${usage.file.name:classpath:usageinfo.csv}") Resource usageResource) {
+		return new FlatFileItemReaderBuilder<Usage>().name("UsageItemReader")
+			.resource(usageResource)
+			.delimited()
+			.names("id", "firstName", "lastName", "minutes", "dataUsage")
+			.fieldSetMapper(new RecordFieldSetMapper<>(Usage.class))
+			.linesToSkip(1)
+			.build();
+	}
+
+	@Bean
 	public ItemProcessor<Usage, Bill> billItemProcessor() {
 		return new ItemProcessor<Usage, Bill>() {
 			@Override
@@ -58,18 +70,6 @@ public class BillingConfig {
 	public Job billingJob(Step billiProcessingStep, JobRepository jobRepository) {
 		return new JobBuilder("BillingJob", jobRepository).incrementer(new RunIdIncrementer())
 			.start(billiProcessingStep)
-			.build();
-	}
-
-	@Bean
-	public ItemReader<Usage> usageItemReader(
-			@Value("${usage.file.name:classpath:usageinfo.csv}") Resource usageResource) {
-		return new FlatFileItemReaderBuilder<Usage>().name("UsageItemReader")
-			.resource(usageResource)
-			.delimited()
-			.names("id", "firstName", "lastName", "minutes", "dataUsage")
-			.fieldSetMapper(new RecordFieldSetMapper<>(Usage.class))
-			.linesToSkip(1)
 			.build();
 	}
 
